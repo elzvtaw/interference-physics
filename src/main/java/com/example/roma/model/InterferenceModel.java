@@ -1,13 +1,20 @@
 package com.example.roma.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+
 public class InterferenceModel {
 
     // Класс для хранения результата расчета
+    @Getter
+    @Setter
     public static class CalculationResult {
         private double intensity = 4.0;
         private String type = "МАКСИМУМ (m = 1)";
@@ -23,35 +30,6 @@ public class InterferenceModel {
         private int minOrder = 1;
         private List<Map<String, Object>> nearbyExtremums = new ArrayList<>();
 
-        // Геттеры
-        public double getIntensity() { return intensity; }
-        public String getType() { return type; }
-        public double getPathDifference() { return pathDifference; }
-        public double getSinTheta() { return sinTheta; }
-        public double getPhaseDiff() { return phaseDiff; }
-        public double getOrder() { return order; }
-        public boolean isMaximum() { return isMaximum; }
-        public boolean isMinimum() { return isMinimum; }
-        public double getMaxWavelength() { return maxWavelength; }
-        public int getMaxOrder() { return maxOrder; }
-        public double getMinWavelength() { return minWavelength; }
-        public int getMinOrder() { return minOrder; }
-        public List<Map<String, Object>> getNearbyExtremums() { return nearbyExtremums; }
-
-        // Сеттеры
-        public void setIntensity(double intensity) { this.intensity = intensity; }
-        public void setType(String type) { this.type = type; }
-        public void setPathDifference(double pathDifference) { this.pathDifference = pathDifference; }
-        public void setSinTheta(double sinTheta) { this.sinTheta = sinTheta; }
-        public void setPhaseDiff(double phaseDiff) { this.phaseDiff = phaseDiff; }
-        public void setOrder(double order) { this.order = order; }
-        public void setMaximum(boolean maximum) { isMaximum = maximum; }
-        public void setMinimum(boolean minimum) { isMinimum = minimum; }
-        public void setMaxWavelength(double maxWavelength) { this.maxWavelength = maxWavelength; }
-        public void setMaxOrder(int maxOrder) { this.maxOrder = maxOrder; }
-        public void setMinWavelength(double minWavelength) { this.minWavelength = minWavelength; }
-        public void setMinOrder(int minOrder) { this.minOrder = minOrder; }
-        public void setNearbyExtremums(List<Map<String, Object>> nearbyExtremums) { this.nearbyExtremums = nearbyExtremums; }
     }
 
     /**
