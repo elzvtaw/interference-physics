@@ -1,6 +1,6 @@
-package com.example.roma.web.api;
+package com.example.isib.interference.web.api;
 
-import com.example.roma.model.InterferenceModel;
+import com.example.isib.interference.model.InterferenceModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -12,7 +12,7 @@ public class InterferenceAPIController {
 
     private final InterferenceModel interferenceModel = new InterferenceModel();
 
-    @PostMapping("/calculate")
+    @PostMapping("/Interference")
     public Map<String, Object> calculate(
             @RequestParam double wavelength,
             @RequestParam double distance,

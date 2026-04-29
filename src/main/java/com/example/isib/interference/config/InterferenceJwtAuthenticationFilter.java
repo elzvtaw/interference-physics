@@ -1,4 +1,4 @@
-package com.example.roma.config;
+package com.example.isib.interference.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import javax.crypto.SecretKey;
 
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class InterferenceJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String SECRET = "mySuperSecretKeyForJWTThatIsAtLeast32CharactersLong2025";
 
@@ -24,6 +24,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // Пропускаем все GET запросы к страницам и статике
+        if (request.getMethod().equals("GET") &&
+                (path.equals("/Interference") || path.equals("/") ||
+                        path.startsWith("/css/") || path.startsWith("/js/"))) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Пропускаем API авторизации
+        if (path.startsWith("/api/auth/")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader("Authorization");
 
@@ -44,14 +60,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
+                chain.doFilter(request, response);
+
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
                 response.setContentType("application/json");
                 return;
             }
+        } else {
+            // Для POST запросов к API без токена - ошибка
+            if (request.getMethod().equals("POST") && path.startsWith("/api/") && !path.startsWith("/api/auth/")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"error\":\"Token required\"}");
+                response.setContentType("application/json");
+                return;
+            }
+            chain.doFilter(request, response);
         }
-
-        chain.doFilter(request, response);
     }
 }

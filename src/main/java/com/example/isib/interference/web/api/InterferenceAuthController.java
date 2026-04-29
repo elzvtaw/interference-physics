@@ -1,4 +1,4 @@
-package com.example.roma.web.api;
+package com.example.isib.interference.web.api;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -10,11 +10,11 @@ import javax.crypto.SecretKey;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class InterferenceAuthController {
 
     private static final String SECRET = "mySuperSecretKeyForJWTThatIsAtLeast32CharactersLong2025";
 
-    @PostMapping("/login")
+    @PostMapping("/Interference")
     public LoginResponse login(@RequestBody LoginRequest request) {
         // Проверка логина и пароля
         if ("user".equals(request.getUsername()) && "password".equals(request.getPassword())) {

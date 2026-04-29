@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Интерференция света — радиус до 10 м</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/interference/css/Interferencestyle.css">
 </head>
 <body>
 <!-- мерцающее небо -->
@@ -223,7 +223,7 @@
     /*]]>*/
 </script>
 
-<script src="/js/script.js"></script>
+<script src="/interference/js/Interferencescript.js"></script>
 
 <script>
     // Функция обновления результатов на странице
@@ -348,7 +348,7 @@
         });
 
         try {
-            const response = await fetch('/api/calculate', {
+            const response = await fetch('/api/Interference', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -378,7 +378,7 @@
     // Автоматическое получение токена
     async function autoLogin() {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/api/auth/Interference', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

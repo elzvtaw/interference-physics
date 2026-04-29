@@ -1,4 +1,4 @@
-package com.example.roma.config;
+package com.example.isib.interference.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,19 +10,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class InterferenceSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // Для JWT CSRF не нужен, так как мы не используем сессии
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // Без сессий - чисто JWT
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // Логин доступен всем
-                        .requestMatchers("/page", "/", "/css/**", "/js/**").permitAll()  // Статика и страницы
-                        .anyRequest().authenticated()  // API требуют JWT токен
+                        // Разрешаем доступ к статическим ресурсам
+                        .requestMatchers("/interference/css/**", "/interference/js/**").permitAll()
+                        .requestMatchers("/Interference").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -30,7 +32,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter();
+    public InterferenceJwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new InterferenceJwtAuthenticationFilter();
     }
 }

@@ -390,7 +390,7 @@ body {
     0%, 100% { transform: translateY(0); opacity: 0.2; }
     50% { transform: translateY(-20px); opacity: 0.8; }
 }
-/* Добавляем в конец файла style.css */
+/* Добавляем в конец файла Interferencestyle.css */
 
 .calculate-btn {
     background: linear-gradient(45deg, #ffd700, #ffaa00);

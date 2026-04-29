@@ -1,4 +1,4 @@
-package com.example.roma.model;
+package com.example.isib.interference.model;
 
 import lombok.Getter;
 import lombok.Setter;

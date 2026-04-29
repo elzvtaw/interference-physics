@@ -1,13 +1,13 @@
-package com.example.roma;
+package com.example.isib;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RomaApplication {
+public class InterferenceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RomaApplication.class, args);
+        SpringApplication.run(InterferenceApplication.class, args);
     }
 
 }
