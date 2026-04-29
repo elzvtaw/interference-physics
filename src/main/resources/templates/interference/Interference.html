@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерференция света — радиус до 10 м</title>
+    <link rel="stylesheet" href="/interference/css/Interferencestyle.css">
+</head>
+<body>
+<!-- мерцающее небо -->
+<div class="sky"></div>
+<div class="stars"></div>
+<div class="stars-extra"></div>
+
+<div class="content">
+    <!-- информационная панель сверху -->
+    <div class="info-panel">
+        <h1><span>✨</span> Интерференция света</h1>
+        <div class="info-text">
+            <strong>Сложение когерентных волн</strong> — перераспределение интенсивности света.
+            <p>«Свет, интерферируя, создаёт узор из волн и энергии» — Томас Юнг</p>
+        </div>
+        <div class="formula-grid">
+            <div class="formula-item">
+                <h3>📐 Условие максимума</h3>
+                <p>d·sinθ = mλ</p>
+                <span style="font-size:0.9rem; opacity:0.8;">(m = 0, ±1, ±2,…)</span>
+            </div>
+            <div class="formula-item">
+                <h3>⚫ Условие минимума</h3>
+                <p>d·sinθ = (m + ½)λ</p>
+                <span style="font-size:0.9rem; opacity:0.8;">(m = 0, ±1, ±2,…)</span>
+            </div>
+            <div class="formula-item">
+                <h3>🌈 Длина волны излучения</h3>
+                <p style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <span>λ =</span>
+                    <span style="display: inline-block; text-align: center;">
+                        <span style="display: block; border-bottom: 2px solid #ffffff; padding: 0 2px;">d·sinθ</span>
+                        <span style="display: block;">m</span>
+                    </span>
+                </p>
+                <span style="font-size:0.9rem; opacity:0.8;">m - значение из условия максимума</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- форма для отправки данных на сервер -->
+    <form id="calculateForm">
+        <!-- слайдеры управления -->
+        <div class="controls">
+            <div class="slider-group">
+                <label>🔴 Длина волны λ (нм) [380-780]</label>
+                <input type="range" id="wavelength" name="wavelength" min="380" max="780"
+                       th:value="${wavelength}" step="0.1"
+                       oninput="window.updateValue(this, 'wavelengthValue', ' нм')">
+                <span class="value-display" id="wavelengthValue"
+                      th:text="${wavelength} + ' нм'">550.0 нм</span>
+            </div>
+            <div class="slider-group">
+                <label>📏 Радиус L (м) [0.1 – 10.0]</label>
+                <input type="range" id="distance" name="distance" min="0.1" max="10.0"
+                       th:value="${distance}" step="0.1"
+                       oninput="window.updateValue(this, 'distanceValue', ' м')">
+                <span class="value-display" id="distanceValue"
+                      th:text="${distance} + ' м'">1.2 м</span>
+            </div>
+            <div class="slider-group">
+                <label>⚡ Ширина щели d (мм)</label>
+                <input type="range" id="slitWidth" name="slitWidth" min="0.05" max="1.0"
+                       th:value="${slitWidth}" step="0.01"
+                       oninput="window.updateValue(this, 'slitWidthValue', ' мм')">
+                <span class="value-display" id="slitWidthValue"
+                      th:text="${slitWidth} + ' мм'">0.30 мм</span>
+            </div>
+            <div class="slider-group">
+                <label>🔢 Количество щелей N (2-10)</label>
+                <input type="range" id="slitNumber" name="slitNumber" min="2" max="10"
+                       th:value="${slitNumber}" step="1"
+                       oninput="window.updateValue(this, 'slitNumberValue', '')">
+                <span class="value-display" id="slitNumberValue"
+                      th:text="${slitNumber}">2</span>
+            </div>
+            <div class="slider-group">
+                <label>📐 Угол θ (°) [0° … 180°]</label>
+                <input type="range" id="sourceAngle" name="sourceAngle" min="0" max="180"
+                       th:value="${sourceAngle}" step="1"
+                       oninput="window.updateValue(this, 'angleValue', '°')">
+                <span class="value-display" id="angleValue"
+                      th:text="${sourceAngle} + '°'">90°</span>
+            </div>
+        </div>
+
+        <!-- КНОПКА РАССЧИТАТЬ -->
+        <div style="display: flex; justify-content: center; margin: 25px 0 10px;">
+            <button type="button" onclick="sendCalculation()" class="calculate-btn">
+                <span class="btn-icon">⚡</span>
+                РАССЧИТАТЬ
+                <span class="btn-icon">✨</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- модель с canvas -->
+    <div class="canvas-wrapper">
+        <div class="canvas-title">ИСТОЧНИК ДВИЖЕТСЯ ПО ДУГЕ · ЭКРАН · ИНТЕРФЕРЕНЦИЯ</div>
+        <canvas id="interferenceCanvas" width="1200" height="500"></canvas>
+    </div>
+
+    <!-- итоговый результат с данными от сервера -->
+    <div class="result-section">
+        <div class="result-cell">
+            <div class="result-label">⟡ РЕЗУЛЬТАТЫ РАСЧЕТА ⟡</div>
+
+            <!-- Введенные параметры -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 20px;">
+                <div style="text-align: left;">
+                    <span style="color: #ffae42;">Введенная λ:</span>
+                    <span style="color: white; font-weight: bold;" id="displayWavelength" th:text="${wavelength} + ' нм'">550 нм</span>
+                </div>
+                <div style="text-align: left;">
+                    <span style="color: #ffae42;">Ширина щели d:</span>
+                    <span style="color: white; font-weight: bold;" id="displaySlitWidth" th:text="${slitWidth} + ' мм'">0.30 мм</span>
+                </div>
+                <div style="text-align: left;">
+                    <span style="color: #ffae42;">Угол θ:</span>
+                    <span style="color: white; font-weight: bold;" id="displaySourceAngle" th:text="${sourceAngle} + '°'">90°</span>
+                </div>
+                <div style="text-align: left;">
+                    <span style="color: #ffae42;">Количество щелей N:</span>
+                    <span style="color: white; font-weight: bold;" id="displaySlitNumber" th:text="${slitNumber}">2</span>
+                </div>
+            </div>
+
+            <!-- Интенсивность -->
+            <div class="result-number" id="resultNumber"
+                 th:text="${resultIntensity}">4.00</div>
+            <div class="result-details">относительная интенсивность (I/I₀)</div>
+
+            <!-- Тип интерференции -->
+            <div class="result-value interference-type" id="resultType"
+                 th:text="${resultType}">МАКСИМУМ (m = 1)</div>
+
+            <!-- Дополнительные параметры -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px;">
+                    <div style="color: #ffae42; font-size: 0.9rem;">sin θ</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;" id="sinTheta" th:text="${sinTheta}">1.0000</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px;">
+                    <div style="color: #ffae42; font-size: 0.9rem;">Разность хода Δ</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;" id="pathDifference" th:text="${pathDifference} + ' мкм'">0.300 мкм</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px;">
+                    <div style="color: #ffae42; font-size: 0.9rem;">Порядок m = Δ/λ</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;" id="order" th:text="${order}">1.000</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px;">
+                    <div style="color: #ffae42; font-size: 0.9rem;">Разность фаз φ</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;" id="phaseDiff" th:text="${phaseDiff} + ' рад'">3.14 рад</div>
+                </div>
+            </div>
+
+            <!-- Вычисленные длины волн -->
+            <div style="margin-top: 20px; background: rgba(0, 40, 80, 0.45); padding: 15px; border-radius: 20px;">
+                <div style="font-size: 1.1rem; color: #ffd966; margin-bottom: 10px;">📊 ОБРАТНАЯ ЗАДАЧА:</div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span>Для МАКСИМУМА (m = <span id="maxOrder" th:text="${maxOrder}">1</span>):</span>
+                    <span style="font-size: 1.3rem; font-weight: bold; color: #7fff7f;" id="maxWavelength"
+                          th:text="${maxWavelength} + ' нм'">550.0 нм</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Для МИНИМУМА (m = <span id="minOrder" th:text="${minOrder} + '.5'">1.5</span>):</span>
+                    <span style="font-size: 1.3rem; font-weight: bold; color: #ff7f7f;" id="minWavelength"
+                          th:text="${minWavelength} + ' нм'">366.7 нм</span>
+                </div>
+
+                <div style="margin-top: 10px; font-size: 0.9rem; color: #aaa; font-style: italic;">
+                    * при текущих d и θ
+                </div>
+            </div>
+
+            <!-- Ближайшие экстремумы -->
+            <div style="margin-top: 20px; background: rgba(80, 40, 0, 0.3); padding: 15px; border-radius: 20px;"
+                 id="extremumsContainer">
+                <div style="font-size: 1.1rem; color: #ffae42; margin-bottom: 10px;">🔍 БЛИЖАЙШИЕ ЭКСТРЕМУМЫ:</div>
+                <div id="extremumsList">
+                    <div th:each="ext : ${nearbyExtremums}" style="margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed rgba(255,255,255,0.2);">
+                        <span th:text="${ext.type}" th:class="${ext.type == 'МАКСИМУМ' ? 'max-text' : 'min-text'}"></span>
+                        <span th:text="' | m = ' + ${ext.order}"></span>
+                        <span th:text="' | θ = ' + ${#strings.format('%.1f', ext.angle)} + '°'"></span>
+                        <br>
+                        <span style="font-size: 0.8rem; color: #ccc;" th:text="'(' + ${ext.condition} + ')'"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сообщение об ошибке -->
+            <div id="errorMessage" class="error-message"
+                 th:classappend="${error != null ? 'visible' : ''}"
+                 th:text="${error}"></div>
+        </div>
+    </div>
+
+    <!-- декоративные волны -->
+    <div class="wave-decoration">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+</div>
+
+<!-- передаем данные из модели в JavaScript для canvas -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.serverData = {
+        wavelength: /*[[${wavelength}]]*/ 550,
+        distance: /*[[${distance}]]*/ 1.2,
+        slitWidth: /*[[${slitWidth}]]*/ 0.3,
+        slitNumber: /*[[${slitNumber}]]*/ 2,
+        sourceAngle: /*[[${sourceAngle}]]*/ 90
+    };
+    /*]]>*/
+</script>
+
+<script src="/interference/js/Interferencescript.js"></script>
+
+<script>
+    // Функция обновления результатов на странице
+    function updateResults(data) {
+        // Интенсивность
+        const resultNumber = document.getElementById('resultNumber');
+        if (resultNumber) resultNumber.textContent = data.resultIntensity;
+
+        // Тип интерференции
+        const resultType = document.getElementById('resultType');
+        if (resultType) resultType.textContent = data.resultType;
+
+        // sin θ
+        const sinThetaEl = document.getElementById('sinTheta');
+        if (sinThetaEl) sinThetaEl.textContent = data.sinTheta;
+
+        // Разность хода Δ
+        const pathDiffEl = document.getElementById('pathDifference');
+        if (pathDiffEl) pathDiffEl.textContent = data.pathDifference + ' мкм';
+
+        // Порядок m
+        const orderEl = document.getElementById('order');
+        if (orderEl) orderEl.textContent = data.order;
+
+        // Разность фаз φ
+        const phaseEl = document.getElementById('phaseDiff');
+        if (phaseEl) phaseEl.textContent = data.phaseDiff + ' рад';
+
+        // Длина волны для максимума
+        const maxWavelengthSpan = document.getElementById('maxWavelength');
+        if (maxWavelengthSpan) maxWavelengthSpan.textContent = data.maxWavelength + ' нм';
+
+        // Порядок максимума
+        const maxOrderSpan = document.getElementById('maxOrder');
+        if (maxOrderSpan) maxOrderSpan.textContent = data.maxOrder;
+
+        // Длина волны для минимума
+        const minWavelengthSpan = document.getElementById('minWavelength');
+        if (minWavelengthSpan) minWavelengthSpan.textContent = data.minWavelength + ' нм';
+
+        // Порядок минимума
+        const minOrderSpan = document.getElementById('minOrder');
+        if (minOrderSpan) minOrderSpan.textContent = data.minOrder + '.5';
+
+        // Отображаемые параметры
+        const displayWavelength = document.getElementById('displayWavelength');
+        if (displayWavelength) displayWavelength.textContent = data.wavelength + ' нм';
+
+        const displaySlitWidth = document.getElementById('displaySlitWidth');
+        if (displaySlitWidth) displaySlitWidth.textContent = data.slitWidth + ' мм';
+
+        const displaySourceAngle = document.getElementById('displaySourceAngle');
+        if (displaySourceAngle) displaySourceAngle.textContent = data.sourceAngle + '°';
+
+        const displaySlitNumber = document.getElementById('displaySlitNumber');
+        if (displaySlitNumber) displaySlitNumber.textContent = data.slitNumber;
+
+        // Обновляем экстремумы
+        if (data.nearbyExtremums && data.nearbyExtremums.length > 0) {
+            const list = document.getElementById('extremumsList');
+            if (list) {
+                list.innerHTML = '';
+                data.nearbyExtremums.forEach(ext => {
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '8px';
+                    div.style.padding = '5px';
+                    div.style.borderBottom = '1px dashed rgba(255,255,255,0.2)';
+                    div.innerHTML = `
+                        <span class="${ext.type === 'МАКСИМУМ' ? 'max-text' : 'min-text'}">${ext.type}</span>
+                        <span> | m = ${ext.order}</span>
+                        <span> | θ = ${ext.angle.toFixed(1)}°</span>
+                        <br>
+                        <span style="font-size: 0.8rem; color: #ccc;">(${ext.condition})</span>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // Обновляем canvas
+        if (typeof window.drawModel === 'function') {
+            // Обновляем значения слайдеров
+            const wavelengthInput = document.getElementById('wavelength');
+            const distanceInput = document.getElementById('distance');
+            const slitWidthInput = document.getElementById('slitWidth');
+            const slitNumberInput = document.getElementById('slitNumber');
+            const sourceAngleInput = document.getElementById('sourceAngle');
+
+            if (wavelengthInput) wavelengthInput.value = data.wavelength;
+            if (distanceInput) distanceInput.value = data.distance;
+            if (slitWidthInput) slitWidthInput.value = data.slitWidth;
+            if (slitNumberInput) slitNumberInput.value = data.slitNumber;
+            if (sourceAngleInput) sourceAngleInput.value = data.sourceAngle;
+
+            // Обновляем отображения
+            if (typeof window.updateValue === 'function') {
+                window.updateValue(wavelengthInput, 'wavelengthValue', ' нм');
+                window.updateValue(distanceInput, 'distanceValue', ' м');
+                window.updateValue(slitWidthInput, 'slitWidthValue', ' мм');
+                window.updateValue(slitNumberInput, 'slitNumberValue', '');
+                window.updateValue(sourceAngleInput, 'angleValue', '°');
+            }
+
+            window.drawModel();
+        }
+    }
+
+    // Получаем токен и отправляем расчет
+    async function sendCalculation() {
+        let token = localStorage.getItem('token');
+
+        if (!token) {
+            token = await autoLogin();
+        }
+
+        const params = new URLSearchParams({
+            wavelength: document.getElementById('wavelength').value,
+            distance: document.getElementById('distance').value,
+            slitWidth: document.getElementById('slitWidth').value,
+            slitNumber: document.getElementById('slitNumber').value,
+            sourceAngle: document.getElementById('sourceAngle').value
+        });
+
+        try {
+            const response = await fetch('/api/Interference', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: params
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateResults(data);
+            } else if (response.status === 401) {
+                const newToken = await autoLogin();
+                if (newToken) {
+                    sendCalculation();
+                }
+            } else {
+                console.error('Ошибка:', response.status);
+                const errorData = await response.text();
+                console.error('Детали:', errorData);
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+
+    // Автоматическое получение токена
+    async function autoLogin() {
+        try {
+            const response = await fetch('/api/auth/Interference', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: 'user',
+                    password: 'password'
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                console.log('Токен получен');
+                return data.token;
+            } else {
+                console.error('Ошибка авторизации:', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('Ошибка авторизации:', error);
+            return null;
+        }
+    }
+
+    // Запускаем получение токена и инициализацию при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        autoLogin();
+    });
+</script>
+</body>
+</html>
